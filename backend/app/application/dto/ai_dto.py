@@ -52,3 +52,23 @@ class IrrigationAdviceResponseDTO(BaseModel):
     fertilizer_suggestion: Optional[str] = None
     reasoning: str
     generated_at: datetime
+
+
+class YieldFinanceRequestDTO(BaseModel):
+    """Request DTO for yield forecasting and financial management."""
+    crop_type: str
+    area_ha: float
+    seed_cost: int
+    fertilizer_cost: int
+    labor_cost: int
+    expected_price_per_kg: int
+
+
+class YieldFinanceResponseDTO(BaseModel):
+    """Response DTO for yield forecasting and financial management."""
+    predicted_yield_tons: float
+    total_cost_vnd: int
+    expected_revenue_vnd: int
+    expected_profit_vnd: int
+    financial_advice: List[str]
+    generated_at: datetime

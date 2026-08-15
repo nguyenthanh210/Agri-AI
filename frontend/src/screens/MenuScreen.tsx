@@ -149,7 +149,8 @@ export default function MenuScreen() {
           <MenuItem icon="partly-sunny-outline" label="Thời tiết khu vực" onPress={() => navigation.navigate('Weather')} />
           <MenuItem icon="planet-outline" label="Giám sát vệ tinh" onPress={() => navigation.navigate('Satellite')} />
           <MenuItem icon="water-outline" label="Tưới tiêu thông minh" onPress={() => navigation.navigate('SmartIrrigation')} />
-          <MenuItem icon="chatbubble-ellipses-outline" label="Trợ lý AI" onPress={() => navigation.navigate('AiChat')} />
+          <MenuItem icon="bar-chart-outline" label="Dự báo & Tài chính" onPress={() => navigation.navigate('YieldFinance')} />
+          <MenuItem icon="chatbubble-ellipses-outline" label="Trợ lý AI nông vụ" onPress={() => navigation.navigate('AiChat')} />
         </View>
 
         {/* Support */}

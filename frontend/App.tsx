@@ -22,6 +22,7 @@ import AdminPanelScreen from './src/screens/AdminPanelScreen';
 import FarmingLogScreen from './src/screens/FarmingLogScreen';
 import TraceabilityScreen from './src/screens/TraceabilityScreen';
 import SmartIrrigationScreen from './src/screens/SmartIrrigationScreen';
+import YieldFinanceScreen from './src/screens/YieldFinanceScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +57,7 @@ export default function App() {
         <Stack.Screen name="FarmingLog" component={FarmingLogScreen} />
         <Stack.Screen name="Traceability" component={TraceabilityScreen} />
         <Stack.Screen name="SmartIrrigation" component={SmartIrrigationScreen} />
+        <Stack.Screen name="YieldFinance" component={YieldFinanceScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -10,6 +10,8 @@ from app.application.dto.ai_dto import (
     FarmInsightResponseDTO,
     IrrigationAdviceRequestDTO,
     IrrigationAdviceResponseDTO,
+    YieldFinanceRequestDTO,
+    YieldFinanceResponseDTO,
 )
 from app.infrastructure.external_services.gemini_service import GeminiService
 
@@ -65,5 +67,28 @@ class IrrigationAdviceUseCase(BaseUseCase[IrrigationAdviceRequestDTO, Irrigation
             water_amount_liters_per_m2=float(result.get("water_amount_liters_per_m2", 0.0)),
             fertilizer_suggestion=result.get("fertilizer_suggestion"),
             reasoning=result.get("reasoning", "Không có gợi ý"),
+            generated_at=datetime.utcnow(),
+        )
+
+
+class YieldFinanceUseCase(BaseUseCase[YieldFinanceRequestDTO, YieldFinanceResponseDTO]):
+    """Use case: get AI predictions for yield and financial insights."""
+
+    async def execute(self, input_dto: YieldFinanceRequestDTO) -> YieldFinanceResponseDTO:
+        service = GeminiService()
+        result = await service.predict_yield_and_finance(
+            crop_type=input_dto.crop_type,
+            area_ha=input_dto.area_ha,
+            seed_cost=input_dto.seed_cost,
+            fertilizer_cost=input_dto.fertilizer_cost,
+            labor_cost=input_dto.labor_cost,
+            expected_price_per_kg=input_dto.expected_price_per_kg,
+        )
+        return YieldFinanceResponseDTO(
+            predicted_yield_tons=float(result.get("predicted_yield_tons", 0.0)),
+            total_cost_vnd=int(result.get("total_cost_vnd", 0)),
+            expected_revenue_vnd=int(result.get("expected_revenue_vnd", 0)),
+            expected_profit_vnd=int(result.get("expected_profit_vnd", 0)),
+            financial_advice=result.get("financial_advice", []),
             generated_at=datetime.utcnow(),
         )

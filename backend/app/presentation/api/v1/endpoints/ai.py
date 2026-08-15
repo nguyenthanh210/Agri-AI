@@ -10,8 +10,10 @@ from app.application.dto.ai_dto import (
     FarmInsightResponseDTO,
     IrrigationAdviceRequestDTO,
     IrrigationAdviceResponseDTO,
+    YieldFinanceRequestDTO,
+    YieldFinanceResponseDTO,
 )
-from app.application.use_cases.ai_use_cases import AIChatUseCase, FarmInsightUseCase, IrrigationAdviceUseCase
+from app.application.use_cases.ai_use_cases import AIChatUseCase, FarmInsightUseCase, IrrigationAdviceUseCase, YieldFinanceUseCase
 from app.presentation.deps import get_current_user
 from app.domain.entities.user import User
 
@@ -65,6 +67,24 @@ async def irrigation_advice(
     Get AI-powered irrigation and fertilization advice.
     """
     use_case = IrrigationAdviceUseCase()
+    try:
+        return await use_case.execute(request)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e),
+        )
+
+
+@router.post("/yield-finance", response_model=YieldFinanceResponseDTO)
+async def yield_finance_advice(
+    request: YieldFinanceRequestDTO,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get AI-powered yield forecasting and financial insights.
+    """
+    use_case = YieldFinanceUseCase()
     try:
         return await use_case.execute(request)
     except ValueError as e:

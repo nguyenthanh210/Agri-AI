@@ -84,6 +84,34 @@ Yêu cầu định dạng JSON:
 
 Chỉ trả về JSON, không có văn bản thêm."""
 
+_YIELD_FINANCE_PROMPT = """Bạn là chuyên gia kinh tế nông nghiệp AI. Hãy phân tích các thông số canh tác dưới đây để dự báo sản lượng và phân tích tài chính.
+
+Dữ liệu đầu vào:
+- Loại cây trồng: {crop_type}
+- Diện tích canh tác: {area_ha} ha
+- Chi phí hạt giống: {seed_cost} VNĐ
+- Chi phí phân bón/thuốc: {fertilizer_cost} VNĐ
+- Chi phí nhân công: {labor_cost} VNĐ
+- Giá bán dự kiến: {expected_price_per_kg} VNĐ/kg
+
+Dựa trên năng suất trung bình của cây {crop_type} tại Việt Nam, hãy:
+1. Dự báo sản lượng (tấn).
+2. Tính toán tổng chi phí (VNĐ).
+3. Tính toán tổng doanh thu dự kiến (VNĐ).
+4. Tính toán lợi nhuận dự kiến (VNĐ).
+5. Đưa ra 2-3 lời khuyên tài chính ngắn gọn.
+
+Yêu cầu định dạng JSON:
+{{
+  "predicted_yield_tons": 0.0,
+  "total_cost_vnd": 0,
+  "expected_revenue_vnd": 0,
+  "expected_profit_vnd": 0,
+  "financial_advice": ["lời khuyên 1", "lời khuyên 2"]
+}}
+
+Chỉ trả về JSON, không có văn bản thêm."""
+
 _MODEL = "gemini-2.5-flash"
 _FALLBACK_MODEL = "gemini-2.5-pro"
 
@@ -358,6 +386,82 @@ class GeminiService:
                 "water_amount_liters_per_m2": 0.0,
                 "fertilizer_suggestion": None,
                 "reasoning": "Lỗi parse JSON từ AI",
+            }
+
+    async def predict_yield_and_finance(
+        self,
+        crop_type: str,
+        area_ha: float,
+        seed_cost: int,
+        fertilizer_cost: int,
+        labor_cost: int,
+        expected_price_per_kg: int,
+    ) -> dict:
+        """Predict yield and calculate financial insights."""
+        client = self._get_client()
+        prompt = _YIELD_FINANCE_PROMPT.format(
+            crop_type=crop_type,
+            area_ha=area_ha,
+            seed_cost=seed_cost,
+            fertilizer_cost=fertilizer_cost,
+            labor_cost=labor_cost,
+            expected_price_per_kg=expected_price_per_kg,
+        )
+        config = types.GenerateContentConfig(
+            temperature=0.3,
+            max_output_tokens=1024,
+        )
+
+        raw_text: Optional[str] = None
+        for model in (_MODEL, _FALLBACK_MODEL):
+            try:
+                response = await client.aio.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=config,
+                )
+                if model != _MODEL:
+                    logger.info(f"Gemini yield finance: used fallback model '{model}'")
+                raw_text = (response.text or "").strip()
+                break
+            except Exception as e:
+                logger.warning(f"Gemini yield finance model '{model}' failed: {e}")
+                if model == _FALLBACK_MODEL:
+                    return {
+                        "predicted_yield_tons": 0.0,
+                        "total_cost_vnd": 0,
+                        "expected_revenue_vnd": 0,
+                        "expected_profit_vnd": 0,
+                        "financial_advice": ["Không thể kết nối với AI lúc này."],
+                    }
+
+        if not raw_text:
+            return {
+                "predicted_yield_tons": 0.0,
+                "total_cost_vnd": 0,
+                "expected_revenue_vnd": 0,
+                "expected_profit_vnd": 0,
+                "financial_advice": ["AI trả về dữ liệu trống"],
+            }
+
+        try:
+            text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+            text = re.sub(r"\s*```$", "", text).strip()
+            if not text.startswith("{"):
+                match = re.search(r"\{.*\}", text, re.DOTALL)
+                if match:
+                    text = match.group(0)
+                else:
+                    raise json.JSONDecodeError("No JSON object", text, 0)
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            logger.error(f"Gemini yield finance JSON parse error: {e}")
+            return {
+                "predicted_yield_tons": 0.0,
+                "total_cost_vnd": 0,
+                "expected_revenue_vnd": 0,
+                "expected_profit_vnd": 0,
+                "financial_advice": ["Lỗi parse JSON từ AI"],
             }
 
 
