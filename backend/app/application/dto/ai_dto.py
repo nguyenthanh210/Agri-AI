@@ -35,3 +35,20 @@ class FarmInsightResponseDTO(BaseModel):
     risk_level: str  # "low", "medium", "high", "unknown"
     risk_reason: Optional[str] = None
     generated_at: datetime
+
+
+class IrrigationAdviceRequestDTO(BaseModel):
+    """Request DTO for generating irrigation and fertilization advice."""
+    crop_type: str
+    growth_stage: str
+    soil_moisture: float
+    weather_forecast: str
+
+
+class IrrigationAdviceResponseDTO(BaseModel):
+    """Response DTO for irrigation and fertilization advice."""
+    action: str  # "irrigate", "wait", "fertilize"
+    water_amount_liters_per_m2: float
+    fertilizer_suggestion: Optional[str] = None
+    reasoning: str
+    generated_at: datetime
