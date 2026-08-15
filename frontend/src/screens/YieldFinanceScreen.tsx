@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function YieldFinanceScreen({ navigation }: any) {
+  const token = useAuthStore(state => state.token);
   const [cropType, setCropType] = useState('Lúa nước');
   const [areaHa, setAreaHa] = useState('1');
   const [seedCost, setSeedCost] = useState('5000000');
@@ -36,6 +37,8 @@ export default function YieldFinanceScreen({ navigation }: any) {
         fertilizer_cost: parseInt(fertilizerCost, 10),
         labor_cost: parseInt(laborCost, 10),
         expected_price_per_kg: parseInt(expectedPrice, 10)
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       setResult(response.data);
     } catch (error) {

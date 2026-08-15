@@ -104,15 +104,15 @@ if (-not $backendStarted) {
 
 Pop-Location
 
-# 4. Use Local IP instead of LocalTunnel
-Write-Host "`n[2/4] Getting Local IP address..." -ForegroundColor Yellow
-$localIp = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias 'Wi-Fi' -ErrorAction SilentlyContinue).IPAddress
-if (-not $localIp) {
-    $localIp = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch 'Loopback|vEthernet|Virtual|VPN|Nord' -and $_.IPAddress -notmatch '169.254' } | Select-Object -First 1).IPAddress
-}
-if (-not $localIp) { $localIp = "127.0.0.1" }
-$apiUrl = "http://$($localIp):8000"
-Write-Host "Using API URL: $apiUrl" -ForegroundColor Green
+# 4. Use LocalTunnel for remote access
+Write-Host "`n[2/4] Starting LocalTunnel for Backend..." -ForegroundColor Yellow
+$ltSubdomain = "agriai-dev-" + (Get-Random -Minimum 1000 -Maximum 9999)
+$apiUrl = "https://$ltSubdomain.loca.lt"
+
+$startLtCmd = "$npxCmd localtunnel --port 8000 --subdomain $ltSubdomain"
+Start-Process powershell -ArgumentList "-WindowStyle Hidden", "-Command", "$startLtCmd"
+
+Write-Host "Backend is now tunneled at: $apiUrl" -ForegroundColor Green
 
 # 5. Update frontend/.env
 Write-Host "`n[3/4] Configuring Expo environment variables..." -ForegroundColor Yellow
@@ -134,9 +134,12 @@ if (-not (Test-Path "node_modules")) {
 
 Write-Host "`nStarting Mobile UI (Expo Go)..." -ForegroundColor Green
 Write-Host "Press Ctrl+C to stop the development server when done." -ForegroundColor Cyan
-$env:REACT_NATIVE_PACKAGER_HOSTNAME = $localIp
+$env:NODE_OPTIONS = "--max-old-space-size=4096"
 
-# Start Expo Go via LAN and clear cache to prevent bundle freeze
-& $npxCmd expo start -c
+# Clean up any hanging ngrok processes that might block the tunnel
+Stop-Process -Name ngrok -Force -ErrorAction SilentlyContinue
+
+# Start Expo Go via ngrok tunnel to allow external network access
+& $npxCmd expo start
 
 Pop-Location

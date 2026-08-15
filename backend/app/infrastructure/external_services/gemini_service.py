@@ -181,6 +181,7 @@ class GeminiService:
         config = types.GenerateContentConfig(
             temperature=0.3,
             max_output_tokens=2048,
+            response_mime_type="application/json",
         )
 
         raw_text: Optional[str] = None
@@ -265,6 +266,7 @@ class GeminiService:
         config = types.GenerateContentConfig(
             temperature=0.4,
             max_output_tokens=1024,
+            response_mime_type="application/json",
         )
 
         raw_text: Optional[str] = None
@@ -337,6 +339,7 @@ class GeminiService:
         config = types.GenerateContentConfig(
             temperature=0.3,
             max_output_tokens=1024,
+            response_mime_type="application/json",
         )
 
         raw_text: Optional[str] = None
@@ -410,6 +413,7 @@ class GeminiService:
         config = types.GenerateContentConfig(
             temperature=0.3,
             max_output_tokens=1024,
+            response_mime_type="application/json",
         )
 
         raw_text: Optional[str] = None
