@@ -112,8 +112,8 @@ Yêu cầu định dạng JSON:
 
 Chỉ trả về JSON, không có văn bản thêm."""
 
-_MODEL = "gemini-2.5-flash"
-_FALLBACK_MODEL = "gemini-2.5-pro"
+_MODEL = "gemini-3.5-flash"
+_FALLBACK_MODEL = "gemini-3.5-flash-lite"
 
 
 class GeminiService:
@@ -169,7 +169,6 @@ class GeminiService:
         config = types.GenerateContentConfig(
             system_instruction=_SYSTEM_PROMPT,
             temperature=0.7,
-            max_output_tokens=1024,
         )
 
         for model in (_MODEL, _FALLBACK_MODEL):
@@ -196,7 +195,6 @@ class GeminiService:
         prompt = _INSIGHT_PROMPT_TEMPLATE.format(context=context_str)
         config = types.GenerateContentConfig(
             temperature=0.3,
-            max_output_tokens=2048,
             response_mime_type="application/json",
         )
 
@@ -270,7 +268,6 @@ class GeminiService:
         )
         config = types.GenerateContentConfig(
             temperature=0.4,
-            max_output_tokens=1024,
             response_mime_type="application/json",
         )
 
@@ -335,7 +332,6 @@ class GeminiService:
         )
         config = types.GenerateContentConfig(
             temperature=0.3,
-            max_output_tokens=1024,
             response_mime_type="application/json",
         )
 
@@ -401,7 +397,6 @@ class GeminiService:
         )
         config = types.GenerateContentConfig(
             temperature=0.3,
-            max_output_tokens=1024,
             response_mime_type="application/json",
         )
 
