@@ -139,6 +139,22 @@ class GeminiService:
             self._client = genai.Client(api_key=settings.GEMINI_API_KEY)
         return self._client
 
+    def _parse_json(self, raw_text: str) -> dict:
+        text = (raw_text or "").strip()
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text).strip()
+        
+        # Extract the JSON portion if preceded/followed by text
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            text = match.group(0)
+        else:
+            raise json.JSONDecodeError("No JSON object found", text, 0)
+            
+        # Fix trailing commas
+        text = re.sub(r",\s*([\}\]])", r"\1", text)
+        return json.loads(text)
+
     async def chat(self, message: str, context: Optional[dict] = None) -> str:
         """Send a message and get a response from the agricultural AI assistant."""
         client = self._get_client()
@@ -215,18 +231,7 @@ class GeminiService:
             }
 
         try:
-            text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-            text = re.sub(r"\s*```$", "", text)
-            text = text.strip()
-            # Fallback: extract first JSON object in case model prepended/appended text
-            if not text.startswith("{"):
-                match = re.search(r"\{.*\}", text, re.DOTALL)
-                if match:
-                    text = match.group(0)
-                else:
-                    logger.error(f"Gemini insight: no JSON object found in response: {text[:200]}")
-                    raise json.JSONDecodeError("No JSON object", text, 0)
-            return json.loads(text)
+            return self._parse_json(raw_text)
         except json.JSONDecodeError as e:
             logger.error(f"Gemini insight JSON parse error: {e}. Raw: {raw_text[:300] if raw_text else 'None'}")
             return {
@@ -302,15 +307,7 @@ class GeminiService:
             }
 
         try:
-            text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-            text = re.sub(r"\s*```$", "", text).strip()
-            if not text.startswith("{"):
-                match = re.search(r"\{.*\}", text, re.DOTALL)
-                if match:
-                    text = match.group(0)
-                else:
-                    raise json.JSONDecodeError("No JSON object", text, 0)
-            return json.loads(text)
+            return self._parse_json(raw_text)
         except json.JSONDecodeError as e:
             logger.error(f"Gemini weather analysis JSON parse error: {e}. Raw: {raw_text[:300] if raw_text else 'None'}")
             return {
@@ -373,15 +370,7 @@ class GeminiService:
             }
 
         try:
-            text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-            text = re.sub(r"\s*```$", "", text).strip()
-            if not text.startswith("{"):
-                match = re.search(r"\{.*\}", text, re.DOTALL)
-                if match:
-                    text = match.group(0)
-                else:
-                    raise json.JSONDecodeError("No JSON object", text, 0)
-            return json.loads(text)
+            return self._parse_json(raw_text)
         except json.JSONDecodeError as e:
             logger.error(f"Gemini irrigation JSON parse error: {e}")
             return {
@@ -449,15 +438,7 @@ class GeminiService:
             }
 
         try:
-            text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-            text = re.sub(r"\s*```$", "", text).strip()
-            if not text.startswith("{"):
-                match = re.search(r"\{.*\}", text, re.DOTALL)
-                if match:
-                    text = match.group(0)
-                else:
-                    raise json.JSONDecodeError("No JSON object", text, 0)
-            return json.loads(text)
+            return self._parse_json(raw_text)
         except json.JSONDecodeError as e:
             logger.error(f"Gemini yield finance JSON parse error: {e}")
             return {
